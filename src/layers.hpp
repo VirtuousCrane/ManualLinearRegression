@@ -9,14 +9,12 @@ using namespace Eigen;
 using namespace utility;
 
 namespace layers{
-	MatrixXfR init_weights(int X_size, int hidden_layer_size);
-	MatrixXfR init_bias(int hidden_size);
-
 	class DifferentDimension{
 		private:
 			string errMessage;
 		public:
 			DifferentDimension();
+			~DifferentDimension();
 			string what();
 	};
 
@@ -25,12 +23,15 @@ namespace layers{
 			MatrixXfR X_;
 			MatrixXfR gradient_;
 		public:
+			Operation();
 			Operation(const MatrixXfR& x);
 
 			virtual MatrixXfR forward()  = 0;
 			virtual void backward() = 0;
 			virtual MatrixXfR get_gradient() = 0;
 			virtual string get_type() = 0;
+
+			virtual ~Operation();
 	};
 
 	class Loss{
@@ -39,57 +40,86 @@ namespace layers{
 			MatrixXfR prediction_, target_;
 			MatrixXfR gradient_;
 		public:
+			Loss();
 			Loss(const MatrixXfR& p, const MatrixXfR& t);
 
-			virtual float forward() = 0;
+			virtual float forward(MatrixXfR& P) = 0;
 			virtual void backward() = 0;
 			virtual MatrixXfR get_gradient() = 0;
 			virtual string get_type() = 0;
+
+			virtual ~Loss();
 	};
 
 	class FullyConnected: public Operation{
 		private:
 			MatrixXfR Weight_;
-			MatrixXfR Bias_;
+			double Bias_;
 			MatrixXfR Output_;
-			MatrixXfR dPdB_;
+			MatrixXfR dPdB_, dPdX_;
 		public:
+			FullyConnected();
 			FullyConnected(const MatrixXfR& x, int hidden_size);
 
+			FullyConnected(const FullyConnected &other);
+			FullyConnected& operator=(const FullyConnected& other);
+
 			void set_weight(const MatrixXfR& weight);
-			void set_bias(const MatrixXfR& bias);
+			void set_bias(const double bias);
+
+			MatrixXfR get_weight();
+			double get_bias();
 
 			string get_type();
 
 			MatrixXfR forward();
 			void backward();
+			void update(const MatrixXfR& gradW, const MatrixXfR& gradB, double learning_rate);
 
 			MatrixXfR get_gradient();
+			MatrixXfR get_x_gradient();
 			MatrixXfR get_bias_gradient();
+
+			void get_weight_dimension();
+
+			~FullyConnected();
 	};
 
 	class Sigmoid: public Operation{
 		private:
 			MatrixXfR Output_;
 		public:
+			Sigmoid();
 			Sigmoid(const MatrixXfR& x);
+
+			Sigmoid(const Sigmoid& other);
+			Sigmoid& operator=(const Sigmoid& other);
 
 			string get_type();
 
 			MatrixXfR forward();
-
 			void backward();
+
 			MatrixXfR get_gradient();
+
+			~Sigmoid();
 	};
 
 	class MeanSquaredError: public Loss{
-		MeanSquaredError(const MatrixXfR &p, const MatrixXfR &t);
+		public:
+			MeanSquaredError();
+			MeanSquaredError(const MatrixXfR &p, const MatrixXfR &t);
 
-		float forward();
-		void backward();
+			MeanSquaredError(const MeanSquaredError& other);
+			MeanSquaredError& operator=(const MeanSquaredError& other);
 
-		MatrixXfR get_gradient();
-		string get_type();
+			float forward(MatrixXfR& P);
+			void backward();
+
+			MatrixXfR get_gradient();
+			string get_type();
+
+			~MeanSquaredError();
 	};
 }
 #endif

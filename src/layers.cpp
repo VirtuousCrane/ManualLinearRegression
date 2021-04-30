@@ -6,185 +6,259 @@
 using namespace std;
 using namespace Eigen;
 using namespace utility;
-using namespace layers;
 
-// ===============================================================================
-//   Define: DifferentDimension Class
-// ===============================================================================
+namespace layers{
+	// ===============================================================================
+	//   Define: DifferentDimension Class
+	// ===============================================================================
 
-DifferentDimension::DifferentDimension(){
-	errMessage = "Different Dimension";
-}
+	DifferentDimension::DifferentDimension(){
+		errMessage = "Different Dimension";
+	}
 
-string DifferentDimension::what(){
-	return errMessage;
-}
+	string DifferentDimension::what(){
+		return errMessage;
+	}
 
-// ===============================================================================
-//   Define: [Abstract Class] Operation
-// ===============================================================================
+	DifferentDimension::~DifferentDimension(){}
 
-Operation::Operation(const MatrixXfR& x){
-	X_ = x;
-}
+	// ===============================================================================
+	//   Define: [Abstract Class] Operation
+	// ===============================================================================
 
+	Operation::Operation(){};
+	Operation::Operation(const MatrixXfR& x){
+		X_ = x;
+	}
+	Operation::~Operation(){}
 
-// ===============================================================================
-//   Define: [Abstract Class] Loss
-// ===============================================================================
+	// ===============================================================================
+	//   Define: [Abstract Class] Loss
+	// ===============================================================================
 
-Loss::Loss(const MatrixXfR& p, const MatrixXfR& t){
-	prediction_ = p;
-	target_     = t;
-}
+	Loss::Loss(){}
+	Loss::~Loss(){}
+	Loss::Loss(const MatrixXfR& p, const MatrixXfR& t){
+		prediction_ = p;
+		target_     = t;
+	}
 
-// ===============================================================================
-//   Define: FullyConnected Class
-// ===============================================================================
+	// ===============================================================================
+	//   Define: FullyConnected Class
+	// ===============================================================================
 
-FullyConnected::FullyConnected(const MatrixXfR& x, int hidden_size): Operation(x){
-	Weight_ = init_weights(X_.cols(), hidden_size);
-	Bias_   = init_bias(hidden_size);
-}
+	FullyConnected::FullyConnected(){};
+	FullyConnected::~FullyConnected(){};
 
-void FullyConnected::set_weight(const MatrixXfR& weight){
-	Weight_ = weight;
-}
+	FullyConnected::FullyConnected(const MatrixXfR& x, int hidden_size): Operation(x){
+		Weight_ = init_weights(X_.cols(), hidden_size);
+		Bias_   = init_bias();
+	}
 
-void FullyConnected::set_bias(const MatrixXfR& bias){
-	Bias_ = bias;
-}
+	FullyConnected::FullyConnected(const FullyConnected& other){
+		X_        = other.X_       ;
+		Bias_     = other.Bias_    ;
+		dPdB_     = other.dPdB_    ;
+		Weight_   = other.Weight_  ;
+		Output_   = other.Output_  ;
+		gradient_ = other.gradient_;
+	}
 
-string FullyConnected::get_type(){
-	return "FullyConnected";
-}
+	FullyConnected& FullyConnected::operator=(const FullyConnected& other){
+		X_        = other.X_       ;
+		Bias_     = other.Bias_    ;
+		dPdB_     = other.dPdB_    ;
+		Weight_   = other.Weight_  ;
+		Output_   = other.Output_  ;
+		gradient_ = other.gradient_;
 
-MatrixXfR FullyConnected::forward(){
-	MatrixXfR temp;
+		return *this;
+	}
 
-	temp = X_ * Weight_;
-	add_vector_to_matrix(Bias_, temp);
+	void FullyConnected::set_weight(const MatrixXfR& weight){
+		Weight_ = weight;
+	}
 
-	Output_ = temp;
+	void FullyConnected::set_bias(const double bias){
+		Bias_ = bias;
+	}
 
-	return Output_;
-}
+	MatrixXfR FullyConnected::get_weight(){
+		return Weight_;
+	}
 
-void FullyConnected::backward(){
-/*
-Let:
-  - N = X*W
-  - P = N + B
-  - dPdN = ones_like(N)
-  - dPdB = ones_like(B)
-*/
-	MatrixXfR dPdN, dPdB;
-	MatrixXfR dNdW, dPdW;
+	double FullyConnected::get_bias(){
+		return Bias_;
+	}
 
-	dPdN = MatrixXfR::Ones(X_.cols(), Weight_.rows());
-	dPdB = MatrixXfR::Ones(Bias_.rows(), Bias_.cols());
+	string FullyConnected::get_type(){
+		return "FullyConnected";
+	}
 
-	dNdW = X_.transpose();
-	dPdW = dNdW * dPdN;
+	MatrixXfR FullyConnected::forward(){
+		MatrixXfR temp;
 
-	dPdB_ = dPdB;
-	gradient_ = dPdW;
-}
+		temp = X_ * Weight_;
+		add_constant_to_matrix(temp, Bias_);
 
-MatrixXfR FullyConnected::get_gradient(){
-	return gradient_;
-}
+		Output_ = temp;
 
-MatrixXfR FullyConnected::get_bias_gradient(){
-	return dPdB_;
-}
+		return Output_;
+	}
 
-// ===============================================================================
-//   Define: Sigmoid Class
-// ===============================================================================
+	void FullyConnected::backward(){
+	/*
+	Let:
+	  - N = X*W
+	  - P = N + B
+	  - dPdN = ones_like(N)
+	  - dPdB = ones_like(B)
+	*/
+		MatrixXfR dPdN, dPdB;
+		MatrixXfR dNdW, dNdX, dPdW, dPdX;
 
-Sigmoid::Sigmoid(const MatrixXfR& x): Operation(x){};
+		dPdN = MatrixXfR::Ones(X_.rows(), Weight_.cols());
+		dPdB = MatrixXfR::Ones(1, 1);
 
-string Sigmoid::get_type(){
-	return "Sigmoid";
-}
+		dNdW = X_.transpose();
+		dNdX = Weight_.transpose();
 
-MatrixXfR Sigmoid::forward(){
-	MatrixXfR output;
-	output = -1.0 * X_;
-	element_wise_exp(output);
-	output = MatrixXfR::Ones(output.rows(), output.cols()) + output;
-	element_wise_inverted_division(output, 1);
-	Output_ = output;
-	return Output_;
-}
+		dPdW = dNdW;
+		dPdX = dNdX;
 
-void Sigmoid::backward(){
-/*
-The derivative of Sigmoid with respect to the input is:
-dSdX = S(x) * (1-S(x))
-*/
-	gradient_ = Output_.cwiseProduct(
-				MatrixXfR::Ones(
-					Output_.rows(),
-					Output_.cols()
-					) - Output_
-				);
-}
+		dPdB_ = dPdB;
+		dPdX_ = dPdX;
+		gradient_ = dPdW;
+	}
 
-MatrixXfR Sigmoid::get_gradient(){
-	return gradient_;
-}
+	void FullyConnected::update(const MatrixXfR& gradW, const MatrixXfR& gradB, double learning_rate){
+		Weight_ -= learning_rate * gradW;
+		Bias_   -= learning_rate * gradB(0, 0);
+	}
 
-// ===============================================================================
-//   Define: MeanSquaredError Class
-// ===============================================================================
+	MatrixXfR FullyConnected::get_gradient(){
+		return gradient_;
+	}
 
-MeanSquaredError::MeanSquaredError(const MatrixXfR &p, const MatrixXfR &t): Loss(p, t){};
+	MatrixXfR FullyConnected::get_x_gradient(){
+		return dPdX_;
+	}
 
-float MeanSquaredError::forward(){
-	float loss;
-	MatrixXfR temp;
+	MatrixXfR FullyConnected::get_bias_gradient(){
+		return dPdB_;
+	}
 
-	temp = prediction_ - target_;
-	element_wise_power(temp, 2);
+	void FullyConnected::get_weight_dimension(){
+		cout << "Weight dim: " << Weight_.rows() << " " << Weight_.cols() << endl;
+	}
 
-	loss = temp.sum();
-	loss /= prediction_.rows();
+	// ===============================================================================
+	//   Define: Sigmoid Class
+	// ===============================================================================
 
-	loss_ = loss;
+	Sigmoid::Sigmoid(){};
+	Sigmoid::~Sigmoid(){};
 
-	return loss_;
-}
+	Sigmoid::Sigmoid(const MatrixXfR& x): Operation(x){}
+	Sigmoid::Sigmoid(const Sigmoid& other){
+		X_        = other.X_       ;
+		gradient_ = other.gradient_;
+		Output_   = other.Output_  ;
+	}
 
-void MeanSquaredError::backward(){
-	MatrixXfR temp;
-	temp = prediction_ - target_;
-	temp *= 2.0;
-	temp /= prediction_.rows();
-	gradient_ = temp;
-}
+	Sigmoid& Sigmoid::operator=(const Sigmoid& other){
+		X_        = other.X_       ;
+		gradient_ = other.gradient_;
+		Output_   = other.Output_  ;
 
-MatrixXfR MeanSquaredError::get_gradient(){
-	return gradient_;
-}
+		return *this;
+	}
 
-string get_type(){
-	return "MSE";
-}
+	string Sigmoid::get_type(){
+		return "Sigmoid";
+	}
 
-// ===============================================================================
-//   Define: Auxiliary functions
-// ===============================================================================
+	MatrixXfR Sigmoid::forward(){
+		MatrixXfR output;
+		output = -1.0 * X_;
+		element_wise_exp(output);
+		output = MatrixXfR::Ones(output.rows(), output.cols()) + output;
+		element_wise_inverted_division(output, 1);
+		Output_ = output;
+		return Output_;
+	}
 
-MatrixXfR init_weights(int X_size, int hidden_layer_size){
-	MatrixXfR output;
-	output = MatrixXfR::Random(X_size, hidden_layer_size);
-	return output;
-}
+	void Sigmoid::backward(){
+	/*
+	The derivative of Sigmoid with respect to the input is:
+	dSdX = S(x) * (1-S(x))
+	*/
+		gradient_ = Output_.cwiseProduct(
+					MatrixXfR::Ones(
+						Output_.rows(),
+						Output_.cols()
+						) - Output_
+					);
+	}
 
-MatrixXfR init_bias(int hidden_size){
-	MatrixXfR output;
-	output = MatrixXfR::Random(1, hidden_size);
-	return output;
+	MatrixXfR Sigmoid::get_gradient(){
+		return gradient_;
+	}
+
+	// ===============================================================================
+	//   Define: MeanSquaredError Class
+	// ===============================================================================
+
+	MeanSquaredError::MeanSquaredError(){};
+	MeanSquaredError::~MeanSquaredError(){};
+	MeanSquaredError::MeanSquaredError(const MatrixXfR &p, const MatrixXfR &t): Loss(p, t){};
+
+	MeanSquaredError::MeanSquaredError(const MeanSquaredError& other){
+		loss_       = other.loss_      ;
+		prediction_ = other.prediction_;
+		target_     = other.target_    ;
+		gradient_   = other.gradient_  ;
+	}
+
+	MeanSquaredError& MeanSquaredError::operator=(const MeanSquaredError& other){
+		loss_       = other.loss_      ;
+		prediction_ = other.prediction_;
+		target_     = other.target_    ;
+		gradient_   = other.gradient_  ;
+
+		return *this;
+	}
+
+	float MeanSquaredError::forward(MatrixXfR& P){
+		float loss;
+		MatrixXfR temp;
+
+		prediction_ = P;
+
+		temp = prediction_ - target_;
+		element_wise_power(temp, 2);
+
+		loss = temp.sum();
+		loss /= prediction_.rows();
+
+		loss_ = loss;
+
+		return loss_;
+	}
+
+	void MeanSquaredError::backward(){
+		MatrixXfR temp;
+		temp = prediction_ - target_;
+		temp *= 2.0;
+		temp /= prediction_.rows();
+		gradient_ = temp;
+	}
+
+	MatrixXfR MeanSquaredError::get_gradient(){
+		return gradient_;
+	}
+
+	string MeanSquaredError::get_type(){
+		return "MSE";
+	}
 }

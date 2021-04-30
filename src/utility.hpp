@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <fstream>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 
@@ -15,6 +17,14 @@ namespace utility{
 	void element_wise_inverted_division(MatrixXfR& mat, float divisor);
 	void element_wise_power(MatrixXfR& mat, int p);
 	void add_vector_to_matrix(MatrixXfR& vec, MatrixXfR& mat);
+	void add_constant_to_matrix(MatrixXfR& mat, const double n);
+
+	MatrixXfR load_csv(const string& path);
+
+	MatrixXfR load_label(const string& path);
+
+	MatrixXfR init_weights(int X_size, int hidden_layer_size);
+	double init_bias();
 
 	template<typename Base, typename T>
 	inline bool instanceof(const T*);
