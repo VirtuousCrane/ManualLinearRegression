@@ -99,6 +99,7 @@ namespace layers{
 
 			MatrixXfR forward();
 			void backward();
+			void update(const MatrixXfR& x);
 
 			MatrixXfR get_gradient();
 

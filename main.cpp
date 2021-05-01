@@ -9,15 +9,18 @@ using namespace Eigen;
 using namespace utility;
 using namespace layers;
 
-double LEARNING_RATE = 0.1;
+double LEARNING_RATE = 0.0001;
+double MAX_LEARNING_RATE = 0.01;
+double MIN_LEARNING_RATE = 0.0001;
 
 int main(){
 // =======================================================
 //  Defining the parameters
 // =======================================================
 
-	MatrixXfR input_matrix = load_csv("./src/dataset/train.csv");
-	MatrixXfR target       = load_label("./src/dataset/train_label.txt");
+	MatrixXfR input_matrix = load_label("./src/dataset/kc_house_dataset/train.txt");
+	input_matrix /= 100000;
+	MatrixXfR target       = load_label("./src/dataset/kc_house_dataset/train_lbl.txt");
 	MatrixXfR M1, O, P, L;
 	float loss;
 
@@ -48,11 +51,15 @@ int main(){
 //  Forward Pass
 // =======================================================
 
-	layer1 = FullyConnected(input_matrix, 13);
+	layer1 = FullyConnected(input_matrix, 1);
 	M1     = layer1.forward();
+
+	cout << M1(0, 0) << endl;
 
 	activation_layer = Sigmoid(M1);
 	O = activation_layer.forward();
+
+	exit(0);
 
 	layer2 = FullyConnected(O, 1);
 	P = layer2.forward();
@@ -106,10 +113,11 @@ int main(){
 // =======================================================
 	double prev_loss = 0;
 	int i = 0;
-	while(loss > 10){
+	while(i < 101){
 //	for(int i=0; i<EPOCH; i++){
 		// Forward Pass
 		M1 = layer1.forward();
+		activation_layer.update(M1);
 		O  = activation_layer.forward();
 		P  = layer2.forward();
 		loss = Loss_Layer.forward(P);
@@ -146,13 +154,19 @@ int main(){
 
 		layer1.update(layer1_W, layer1_B, LEARNING_RATE);
 
-		cout << "Epoch: " << i++ << " Loss: " << loss << endl;
+//		cout << "Epoch: " << i++ << " Loss: " << loss << endl;
 
-		if(loss > prev_loss){
-			LEARNING_RATE /= 10;
-			cout << "LEARNING RATE shrunken: " << LEARNING_RATE << endl;
+		apply_cyclic_learning_rate(MIN_LEARNING_RATE, MAX_LEARNING_RATE, LEARNING_RATE, 0.0001);
+
+		i++;
+		if(i % 10 == 0){
+			cout << "Weight 1: " << endl << layer1.get_weight() << endl << endl;
+			cout << "Bias 1: " << endl << layer1.get_bias() << endl << endl;
+			cout << "P1: " << endl << M1(0,0) << " " << M1.rows() << endl << endl;
+			cout << "Sigmoid: " << endl << activation_layer.get_gradient()(0,0) << endl << endl;
+			cout << "Weight 2: " << endl << layer2.get_weight() << endl << endl;
+			cout << "Bias 2: " << endl << layer2.get_bias() << endl << endl;
 		}
-		prev_loss = loss;
 	}
 
 // =======================================================

@@ -178,13 +178,20 @@ namespace layers{
 		return "Sigmoid";
 	}
 
+	void Sigmoid::update(const MatrixXfR& x){
+		X_ = x;
+	}
+
 	MatrixXfR Sigmoid::forward(){
 		MatrixXfR output;
 		output = -1.0 * X_;
+		cout << output(0, 0) << endl;
 		element_wise_exp(output);
+		cout << output(0, 0) << endl;
 		output = MatrixXfR::Ones(output.rows(), output.cols()) + output;
 		element_wise_inverted_division(output, 1);
 		Output_ = output;
+		cout << "Sigmoid Output: " << Output_(0,0) << endl;
 		return Output_;
 	}
 
@@ -193,12 +200,8 @@ namespace layers{
 	The derivative of Sigmoid with respect to the input is:
 	dSdX = S(x) * (1-S(x))
 	*/
-		gradient_ = Output_.cwiseProduct(
-					MatrixXfR::Ones(
-						Output_.rows(),
-						Output_.cols()
-						) - Output_
-					);
+		gradient_ = Output_.cwiseProduct(MatrixXfR::Ones(Output_.rows(), Output_.cols()) - Output_);
+		cout << "Sigmoid Gradient: " << gradient_(0,0) << endl;
 	}
 
 	MatrixXfR Sigmoid::get_gradient(){
@@ -236,6 +239,7 @@ namespace layers{
 		prediction_ = P;
 
 		temp = prediction_ - target_;
+
 		element_wise_power(temp, 2);
 
 		loss = temp.sum();

@@ -20,7 +20,7 @@ namespace utility{
 	void element_wise_inverted_division(utility::MatrixXfR& mat, float divisor){
 		for(int i=0; i<mat.rows(); i++){
 			for(int j=0; j<mat.cols(); j++){
-				mat(i, j) = divisor/mat(i, j);
+				mat(i, j) = divisor/(float) mat(i, j);
 			}
 		}
 	}
@@ -54,13 +54,13 @@ namespace utility{
 		ifstream indata;
 		indata.open(path);
 		string line;
-		vector<float> values;
+		vector<double> values;
 		uint rows = 0;
 		while(getline(indata, line)){
 			stringstream lineStream(line);
 			string cell;
 			while(getline(lineStream, cell, ',')){
-				values.push_back((float) stod(cell));
+				values.push_back(stod(cell));
 			}
 			++rows;
 		}
@@ -71,13 +71,28 @@ namespace utility{
 		ifstream indata;
 		indata.open(path);
 		string line;
-		vector<float> values;
+		vector<double> values;
 		uint rows = 0;
 		while(getline(indata, line)){
-			values.push_back((float) stod(line));
+			values.push_back(stod(line));
 			++rows;
 		}
 		return Map<MatrixXfR>(values.data(), rows, 1);
+	}
+
+	void apply_cyclic_learning_rate(double min, double max, double& current, double incrementor){
+		static unsigned int direction = 1;
+		if(direction == 1 && current <= max){
+			current += incrementor;
+		}else if(direction == 2 && current >= min){
+			current -= incrementor;
+		}else if(direction == 1 && current > max){
+			direction = 2;
+			current -= incrementor;
+		}else if(direction == 2 && current < min){
+			direction = 1;
+			current += incrementor;
+		}
 	}
 
 	template<typename Base, typename T>
@@ -87,7 +102,7 @@ namespace utility{
 
 	utility::MatrixXfR init_weights(int X_size, int hidden_layer_size){
 		utility::MatrixXfR output;
-		output = utility::MatrixXfR::Random(X_size, hidden_layer_size);
+		output = utility::MatrixXfR::Ones(X_size, hidden_layer_size);
 		return output;
 	}
 
