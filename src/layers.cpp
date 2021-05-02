@@ -206,6 +206,54 @@ namespace layers{
 	}
 
 	// ===============================================================================
+	//   Define: Relu Class
+	// ===============================================================================
+
+	Relu::Relu(){}
+	Relu::~Relu(){}
+
+	Relu::Relu(const MatrixXfR& x): Operation(x){}
+	Relu::Relu(const Relu& other){
+		X_ = other.X_;
+		gradient_ = other.gradient_;
+		Output_ = other.Output_;
+	}
+
+	Relu& Relu::operator=(const Relu& other){
+		X_ = other.X_;
+		gradient_ = other.gradient_;
+		Output_ = other.Output_;
+
+		return *this;
+	}
+
+	MatrixXfR Relu::forward(){
+		apply_relu(X_, Output_);
+		return Output_;
+	}
+
+	void Relu::backward(){
+		gradient_ = MatrixXfR::Zero(Output_.rows(), Output_.cols());
+		for(int i = 0; i < Output_.rows(); i++){
+			for(int j = 0; j < Output_.cols(); j++){
+				if(Output_(i, j) > 0){
+					gradient_(i, j) = 1;
+				}else{
+					gradient_(i, j) = 0;
+				}
+			}
+		}
+	}
+
+	string Relu::get_type(){
+		return "Relu";
+	}
+
+	MatrixXfR Relu::get_gradient(){
+		return gradient_;
+	}
+
+	// ===============================================================================
 	//   Define: MeanSquaredError Class
 	// ===============================================================================
 

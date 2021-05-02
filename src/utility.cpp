@@ -50,6 +50,19 @@ namespace utility{
 		}
 	}
 
+	void apply_relu(const utility::MatrixXfR& data, utility::MatrixXfR& output){
+		output = MatrixXfR::Zero(data.rows(), data.cols());
+		for(int i = 0; i < data.rows(); i++){
+			for(int j = 0; j < data.cols(); j++){
+				if(data(i, j) > 0){
+					output(i, j) = data(i, j);
+				}else{
+					output(i, j) = 0;
+				}
+			}
+		}
+	}
+
 	MatrixXfR load_csv(const std::string& path){
 		ifstream indata;
 		indata.open(path);
@@ -87,7 +100,7 @@ namespace utility{
 
 	utility::MatrixXfR init_weights(int X_size, int hidden_layer_size){
 		utility::MatrixXfR output;
-		output = utility::MatrixXfR::Random(X_size, hidden_layer_size);
+		output = utility::MatrixXfR::Ones(X_size, hidden_layer_size);
 		return output;
 	}
 

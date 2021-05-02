@@ -18,6 +18,7 @@ namespace utility{
 	void element_wise_power(MatrixXfR& mat, int p);
 	void add_vector_to_matrix(MatrixXfR& vec, MatrixXfR& mat);
 	void add_constant_to_matrix(MatrixXfR& mat, const double n);
+	void apply_relu(const MatrixXfR& data, MatrixXfR& output);
 
 	MatrixXfR load_csv(const string& path);
 

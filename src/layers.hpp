@@ -105,6 +105,26 @@ namespace layers{
 			~Sigmoid();
 	};
 
+	class Relu: public Operation{
+		private:
+			MatrixXfR Output_;
+		public:
+		Relu();
+		Relu(const MatrixXfR& x);
+
+		Relu(const Relu& other);
+		Relu& operator=(const Relu& other);
+
+		string get_type();
+
+		MatrixXfR forward();
+		void backward();
+
+		MatrixXfR get_gradient();
+
+		~Relu();
+	};
+
 	class MeanSquaredError: public Loss{
 		public:
 			MeanSquaredError();
