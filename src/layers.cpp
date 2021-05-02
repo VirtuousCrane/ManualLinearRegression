@@ -50,6 +50,11 @@ namespace layers{
 	FullyConnected::FullyConnected(){};
 	FullyConnected::~FullyConnected(){};
 
+	FullyConnected::FullyConnected(const MatrixXfR& x){
+		Weight_ = init_weights(X_.cols(), X_.cols());
+		Bias_   = init_bias();
+	}
+
 	FullyConnected::FullyConnected(const MatrixXfR& x, int hidden_size): Operation(x){
 		Weight_ = init_weights(X_.cols(), hidden_size);
 		Bias_   = init_bias();
@@ -131,6 +136,10 @@ namespace layers{
 		gradient_ = dPdW;
 	}
 
+	void FullyConnected::update_input(const MatrixXfR& x){
+		X_ = x;
+	}
+
 	void FullyConnected::update(const MatrixXfR& gradW, const MatrixXfR& gradB, double learning_rate){
 		Weight_ -= learning_rate * gradW;
 		Bias_   -= learning_rate * gradB(0, 0);
@@ -199,6 +208,10 @@ namespace layers{
 						Output_.cols()
 						) - Output_
 					);
+	}
+
+	void Sigmoid::update(const MatrixXfR& x){
+		X_ = x;
 	}
 
 	MatrixXfR Sigmoid::get_gradient(){

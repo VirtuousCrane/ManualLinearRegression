@@ -59,6 +59,7 @@ namespace layers{
 			MatrixXfR dPdB_, dPdX_;
 		public:
 			FullyConnected();
+			FullyConnected(const MatrixXfR& x);
 			FullyConnected(const MatrixXfR& x, int hidden_size);
 
 			FullyConnected(const FullyConnected &other);
@@ -74,6 +75,7 @@ namespace layers{
 
 			MatrixXfR forward();
 			void backward();
+			void update_input(const MatrixXfR& x);
 			void update(const MatrixXfR& gradW, const MatrixXfR& gradB, double learning_rate);
 
 			MatrixXfR get_gradient();
@@ -99,6 +101,7 @@ namespace layers{
 
 			MatrixXfR forward();
 			void backward();
+			void update(const MatrixXfR& x);
 
 			MatrixXfR get_gradient();
 

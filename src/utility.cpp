@@ -12,7 +12,10 @@ namespace utility{
 	void element_wise_exp(utility::MatrixXfR& mat){
 		for(int i=0; i<mat.rows(); i++){
 			for(int j=0; j<mat.cols(); j++){
-				mat(i, j) = exp(mat(i, j));
+				double temp = exp(mat(i, j));
+				temp = min(temp, 0.9999);
+				temp = max(temp, 0.0001);
+				mat(i, j) = temp;
 			}
 		}
 	}
@@ -77,6 +80,7 @@ namespace utility{
 			}
 			++rows;
 		}
+
 		return Map<MatrixXfR>(values.data(), rows, values.size()/rows);
 	}
 
@@ -93,6 +97,12 @@ namespace utility{
 		return Map<MatrixXfR>(values.data(), rows, 1);
 	}
 
+	void normalize_cols(MatrixXfR& mat){
+		for(int i = 0; i < mat.cols(); i++){
+			mat.col(i).normalize();
+		}
+	}
+
 	template<typename Base, typename T>
 	inline bool instanceof(const T*){
 		return is_base_of<Base, T>::value;
@@ -100,7 +110,7 @@ namespace utility{
 
 	utility::MatrixXfR init_weights(int X_size, int hidden_layer_size){
 		utility::MatrixXfR output;
-		output = utility::MatrixXfR::Ones(X_size, hidden_layer_size);
+		output = utility::MatrixXfR::Random(X_size, hidden_layer_size);
 		return output;
 	}
 
