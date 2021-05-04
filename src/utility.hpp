@@ -1,3 +1,6 @@
+// Written By: Chayut Liewlom (63011134),
+// the LEGENDARY LEGEND chosen by, uh... , no one
+
 #include <iostream>
 #include <vector>
 #include <fstream>

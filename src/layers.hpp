@@ -1,3 +1,6 @@
+// Written By: Chayut Liewlom (63011134),
+// the most lazy person in the class
+
 #include <iostream>
 #include "utility.hpp"
 #include <Eigen/Dense>

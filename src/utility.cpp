@@ -1,3 +1,6 @@
+// Written By: Chayut Liewlom (63011134),
+// Nice day for fishing, ain't it?
+
 #include "utility.hpp"
 #include <iostream>
 #include <vector>

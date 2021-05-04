@@ -1,3 +1,6 @@
+// Written By: Chayut Liewlom (63011134),
+// the most charming person in the class.
+
 #include <iostream>
 #include "utility.hpp"
 #include "layers.hpp"
