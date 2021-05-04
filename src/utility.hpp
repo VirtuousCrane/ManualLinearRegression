@@ -11,7 +11,15 @@ using namespace Eigen;
 using namespace std;
 
 namespace utility{
-	typedef Matrix<float, Dynamic, Dynamic, RowMajor> MatrixXfR;
+	typedef Matrix<double, Dynamic, Dynamic, RowMajor> MatrixXfR;
+
+	class InvalidFile {
+		private:
+			string errMessage;
+		public:
+			InvalidFile();
+			string what();
+	};
 
 	void element_wise_exp(MatrixXfR& mat);
 	void element_wise_inverted_division(MatrixXfR& mat, float divisor);
@@ -22,7 +30,7 @@ namespace utility{
 	void normalize_cols(MatrixXfR& mat);
 
 	MatrixXfR load_csv(const string& path);
-
+	MatrixXfR load_saved_matrix(string path);
 	MatrixXfR load_label(const string& path);
 
 	MatrixXfR init_weights(int X_size, int hidden_layer_size);
@@ -30,6 +38,10 @@ namespace utility{
 
 	template<typename Base, typename T>
 	inline bool instanceof(const T*);
+
+	int file_exists(string path);
+	void write_to_file(string path, MatrixXfR& data);
+	void write_to_file(string path, double data);
 }
 
 #endif
