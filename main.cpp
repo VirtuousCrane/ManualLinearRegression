@@ -1,3 +1,6 @@
+// Written By: Chayut Liewlom (63011134),
+// the most handsome student in the class.
+
 #include <iostream>
 #include <vector>
 #include <limits>
